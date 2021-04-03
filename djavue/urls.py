@@ -18,8 +18,11 @@ from django.urls import path
 
 from rest_framework.authtoken.views import obtain_auth_token
 
+from djavue.core.views import ProcessImage
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token/', obtain_auth_token, name='api_token_auth')
+    path('api/token/', obtain_auth_token, name='api_token'),
+    path('api/job/', ProcessImage.as_view(), name='api_job')
 ]
