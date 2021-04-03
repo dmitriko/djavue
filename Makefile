@@ -9,3 +9,5 @@ venv:
 venv-update: venv
 	$(PIP) install --upgrade -r requirements.txt
 
+test: venv
+	python manage.py test
