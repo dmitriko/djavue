@@ -1,10 +1,16 @@
+import base64
+import pathlib
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from rest_framework.test import APIClient
 
 from rest_framework.authtoken.models import Token
+
+from djavue.core.models import Job
 
 
 class TestGetToken(TestCase):
@@ -56,9 +62,36 @@ class TestJobApiAccess(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         data = {
-                'file_name':'foo.png',
-                'content': 'foobar',
+                'file': SimpleUploadedFile(
+                    'foo.txt', b'foo', content_type='text/plain'),
                 'kind': 'baz'
                 }
         resp = client.post(reverse('api_job'), data, format='json')
         self.assertEqual(resp.status_code, 400)
+
+
+class TestJobApiProcess(TestCase):
+
+    def setUp(self):
+        user = User.objects.create_user('foo', password='bar')
+        user.save()
+        token = Token.objects.create(user=user)
+        token.save()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        path = pathlib.Path(__file__).parent / 'test_data' / 'img.png'
+        with open(path, 'rb') as f:
+            self.upload_file = SimpleUploadedFile(
+                    'foo.png', f.read(), content_type='image/png')
+
+    def test_original(self):
+        resp = self.client.post(reverse('api_job'),
+            dict(file=self.upload_file,
+                kind='original'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Job.objects.count(), 1)
+        job = list(Job.objects.all())[0]
+        self.assertTrue(job.user is not None)
+        self.assertEqual(job.user.username, 'foo')
+        self.assertEqual(job.kind, 'original')
+

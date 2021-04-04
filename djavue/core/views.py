@@ -3,13 +3,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 
+from djavue.core.models import Job, JOB_KINDS
+
+
 class ProcessImage(APIView):
     'Perform image processing'
 
     permission_classes = (IsAuthenticated,)
 
-    REQUIRED_FIELDS = ('file_name', 'content', 'kind')
-    KINDS = ('original', 'square_original', 'square_small', 'all_three')
+    REQUIRED_FIELDS = ('file', 'kind')
 
     def post(self, request):
         errors = []
@@ -18,5 +20,9 @@ class ProcessImage(APIView):
                 errors.append('Missing {}'.format(field))
         if errors:
             return Response({'error': "\n".join(errors)}, status=400)
-        return Response({'foo':'bar'})
+        if request.data['kind'] not in JOB_KINDS:
+            return Response({'error': 'Wrong job kind'}, status=400)
+        job = Job.objects.create(user=request.user, kind=request.data['kind'])
+        job.save()
+        return Response({'ok':True})
 
