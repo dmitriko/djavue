@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 
 from rest_framework.authtoken.models import Token
 
-from djavue.core.models import Job
+from djavue.core.models import Job, Image
 
 
 class TestGetToken(TestCase):
@@ -94,4 +94,7 @@ class TestJobApiProcess(TestCase):
         self.assertTrue(job.user is not None)
         self.assertEqual(job.user.username, 'foo')
         self.assertEqual(job.kind, 'original')
+        self.assertEqual(Image.objects.filter(job=job).count(), 1)
+        image = Image.objects.get(job=job)
+        self.assertEqual(image.img.size, self.upload_file.size)
 
