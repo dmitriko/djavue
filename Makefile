@@ -11,3 +11,6 @@ venv-update: venv
 
 test: venv
 	python manage.py test
+
+build-backend:
+	docker build . -f Dockerfile.backend -t dmitriko/djavue-backend:latest
