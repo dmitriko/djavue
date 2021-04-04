@@ -51,6 +51,20 @@ def handle_square_original(job, uploaded_file):
     return ok_response(job)
 
 
+def handle_square_small(job, uploaded_file):
+    '''Small (256px x 256px; should not stretch the image;
+    you can add white background for smaller sides)
+
+    '''
+    image_db_obj = Image.objects.create(job=job, img=uploaded_file, kind=job.kind)
+    image_db_obj.save()
+    orig = PILImage.open(uploaded_file)
+    cropped = orig.crop((0, 0, min(orig.width, 256), min(orig.height, 256)))
+    result_img = put_in_square(cropped, 256)
+    result_img.save(image_db_obj.img.path)
+    return ok_response(job)
+
+
 class ProcessImage(APIView):
     'Perform image processing'
 
@@ -77,5 +91,7 @@ class ProcessImage(APIView):
             return handle_original(job, request.data['file'])
         if job_kind == JOB_KIND.square_original:
             return handle_square_original(job, request.data['file'])
+        if job_kind == JOB_KIND.square_small:
+            return handle_square_small(job, request.data['file'])
         return Response({'ok':False}, status=400)
 

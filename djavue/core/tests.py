@@ -111,3 +111,11 @@ class TestJobApiProcess(TestCase):
         self.assertEqual(image.img.width, image.img.height)
 
 
+    def test_square_small(self):
+        resp = self.client.post(reverse('api_job'),
+            dict(file=self.upload_file,
+                kind='square_small'))
+        self.assertEqual(resp.status_code, 200)
+        image = Image.objects.get(job__id=resp.json()['job_id'])
+        self.assertEqual(256, image.img.width)
+        self.assertEqual(256, image.img.height)
