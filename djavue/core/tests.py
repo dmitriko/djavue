@@ -1,5 +1,5 @@
-import base64
 import pathlib
+import os
 
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -84,6 +84,10 @@ class TestJobApiProcess(TestCase):
             self.upload_file = SimpleUploadedFile(
                     'foo.png', f.read(), content_type='image/png')
 
+    def tearDown(self):
+        for image in Image.objects.all():
+            os.unlink(image.img.path)
+
     def test_original(self):
         resp = self.client.post(reverse('api_job'),
             dict(file=self.upload_file,
@@ -97,4 +101,13 @@ class TestJobApiProcess(TestCase):
         self.assertEqual(Image.objects.filter(job=job).count(), 1)
         image = Image.objects.get(job=job)
         self.assertEqual(image.img.size, self.upload_file.size)
+
+    def test_square_original(self):
+        resp = self.client.post(reverse('api_job'),
+            dict(file=self.upload_file,
+                kind='square_original'))
+        self.assertEqual(resp.status_code, 200)
+        image = Image.objects.get(job__id=resp.json()['job_id'])
+        self.assertEqual(image.img.width, image.img.height)
+
 
