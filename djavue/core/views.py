@@ -65,6 +65,23 @@ def handle_square_small(job, uploaded_file):
     return ok_response(job)
 
 
+def handle_all_three(job, uploaded_file):
+    job.kind = 'original'
+    resp = handle_original(job, uploaded_file)
+    if resp.status_code != 200:
+        return resp
+    job.kind = 'square_original'
+    resp = handle_square_original(job, uploaded_file)
+    if resp.status_code != 200:
+        return resp
+    job.kind = 'square_small'
+    resp = handle_square_small(job, uploaded_file)
+    if resp.status_code != 200:
+        return resp
+    return ok_response(job)
+
+
+
 class ProcessImage(APIView):
     'Perform image processing'
 
@@ -93,5 +110,7 @@ class ProcessImage(APIView):
             return handle_square_original(job, request.data['file'])
         if job_kind == JOB_KIND.square_small:
             return handle_square_small(job, request.data['file'])
+        if job_kind  == JOB_KIND.all_three:
+            return handle_all_three(job, request.data['file'])
         return Response({'ok':False}, status=400)
 
