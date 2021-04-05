@@ -94,7 +94,13 @@ class ProcessImage(APIView):
             job = Job.objects.get(id=pk)
         except Job.DoesNotExist:
             return Response({'ok': False}, status=404)
-        data = {'pk': job.id}
+        if job.user != request.user:
+            return Response({'ok': False}, status=403)
+        data = {'pk': job.id, 'images':[]}
+        for image in Image.objects.filter(job=job):
+            data['images'].append(
+                    {'pk': image.id, 'kind': image.kind}
+                    )
         return Response({'ok': True, 'data': data})
 
     def post(self, request):

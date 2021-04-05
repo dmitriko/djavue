@@ -144,4 +144,10 @@ class TestJobApiProcess(TestCase):
         get_url = reverse('api_job_get', args=(job_id,))
         resp = self.client.get(get_url)
         self.assertEqual(resp.status_code, 200)
-
+        data = resp.json()['data']
+        images = {}
+        for item in data['images']:
+            images[item['kind']] = item['pk']
+        self.assertEqual(len(images), 3)
+        for image_kind, image_pk in images.items():
+            self.assertTrue(Image.objects.get(pk=image_pk, kind=image_kind))
