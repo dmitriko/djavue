@@ -1,4 +1,7 @@
 import io
+import mimetypes
+
+from django.http import HttpResponse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -80,6 +83,17 @@ def handle_all_three(job, uploaded_file):
         return resp
     return ok_response(job)
 
+
+class GetImage(APIView):
+    def get(self, request, pk):
+        try:
+            image = Image.objects.get(pk=pk)
+        except Image.DoesNotExist:
+            return Resonse({'ok': False}, status=404)
+        if image.job.user != request.user:
+            return Response({'ok': False}, status=403)
+        return HttpResponse(image.img, content_type=mimetypes.guess_type(
+                image.img.path)[0])
 
 
 class ProcessImage(APIView):

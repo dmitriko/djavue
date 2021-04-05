@@ -118,7 +118,6 @@ class TestJobApiProcess(TestCase):
         image = Image.objects.get(job__id=resp.json()['job_id'])
         self.assertEqual(256, image.img.width)
         self.assertEqual(256, image.img.height)
-#        import IPython; IPython.embed(using=False)
 
     def test_all_three(self):
         resp = self.client.post(reverse('api_job'),
@@ -151,3 +150,16 @@ class TestJobApiProcess(TestCase):
         self.assertEqual(len(images), 3)
         for image_kind, image_pk in images.items():
             self.assertTrue(Image.objects.get(pk=image_pk, kind=image_kind))
+
+    def test_image_get(self):
+        resp = self.client.post(reverse('api_job'),
+            dict(file=self.upload_file,
+                kind='square_small'))
+        self.assertEqual(resp.status_code, 200)
+        job_id = resp.json()['job_id']
+        stored_image = Image.objects.get(job__id=job_id)
+        resp = self.client.get(reverse('api_image_get', args=(stored_image.id,)))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.content), stored_image.img.size)
+#        import IPython; IPython.embed(using=False)
+
