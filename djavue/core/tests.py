@@ -127,3 +127,11 @@ class TestJobApiProcess(TestCase):
         self.assertEqual(resp.status_code, 200)
         image1 = Image.objects.get(job__id=resp.json()['job_id'], kind='original')
         image2 = Image.objects.get(job__id=resp.json()['job_id'], kind='square_original')
+        image3 = Image.objects.get(job__id=resp.json()['job_id'], kind='square_small')
+        self.assertEqual(image1.img.size, self.upload_file.size)
+        self.assertEqual(image2.img.width, image2.img.height)
+        self.assertEqual(image3.img.width, image3.img.height, 256)
+
+    def test_get_all_three(self):
+        "Process file and get all three images back"
+

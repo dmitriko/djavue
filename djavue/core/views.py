@@ -89,6 +89,7 @@ class ProcessImage(APIView):
 
     REQUIRED_FIELDS = ('file', 'kind')
 
+#    def get(self, request, pk):
     def post(self, request):
         errors = []
         for field in self.REQUIRED_FIELDS:
