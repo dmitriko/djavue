@@ -89,7 +89,14 @@ class ProcessImage(APIView):
 
     REQUIRED_FIELDS = ('file', 'kind')
 
-#    def get(self, request, pk):
+    def get(self, request, pk):
+        try:
+            job = Job.objects.get(id=pk)
+        except Job.DoesNotExist:
+            return Response({'ok': False}, status=404)
+        data = {'pk': job.id}
+        return Response({'ok': True, 'data': data})
+
     def post(self, request):
         errors = []
         for field in self.REQUIRED_FIELDS:

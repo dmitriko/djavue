@@ -134,4 +134,14 @@ class TestJobApiProcess(TestCase):
 
     def test_get_all_three(self):
         "Process file and get all three images back"
+        # test 404 error first
+        resp = self.client.get(reverse('api_job_get', args=(111111,)))
+        self.assertEqual(resp.status_code, 404)
+        resp = self.client.post(reverse('api_job'),
+            dict(file=self.upload_file,
+                kind='all_three'))
+        job_id = resp.json()['job_id']
+        get_url = reverse('api_job_get', args=(job_id,))
+        resp = self.client.get(get_url)
+        self.assertEqual(resp.status_code, 200)
 

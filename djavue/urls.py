@@ -24,5 +24,6 @@ from djavue.core.views import ProcessImage
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', obtain_auth_token, name='api_token'),
-    path('api/job/', ProcessImage.as_view(), name='api_job')
+    path('api/job/', ProcessImage.as_view(), name='api_job'),
+    path('api/job/<int:pk>/', ProcessImage.as_view(), name='api_job_get')
 ]
