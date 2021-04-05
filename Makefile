@@ -1,4 +1,5 @@
 # simple make file for django/vue  project
+.PHONY: venv-update test build-backend migrate 
 
 PIP = venv/bin/pip
 
@@ -11,6 +12,10 @@ venv-update: venv
 
 test: venv
 	python manage.py test
+
+migrate:
+	python manage.py makemigrations
+	python manage.py migrate
 
 build-backend:
 	docker build . -f Dockerfile.backend -t dmitriko/djavue-backend:latest
