@@ -2,22 +2,30 @@
   <div id="app">
       <b-navbar type="dark" variant="info">
           <b-navbar-brand>Djavue</b-navbar-brand>
+          <b-navbar-nav class="ml-auto">
+        <b-nav-form>
+          <b-button v-if="loggedIn" size="sm" class="my-2 my-sm-0" @click="logOut()">Logout</b-button>
+        </b-nav-form>
+          </b-navbar-nav>
       </b-navbar>
-      <LoginForm  v-if="!isLogged" />
-      <div v-if="isLogged">SubmitJob Form</div>
+      <LoginForm  v-if="!loggedIn" />
+      <div v-if="loggedIn">SubmitJob Form</div>
 
  </div>
 </template>
 
 <script>
-
+import { mapState } from 'vuex'
 import LoginForm from './components/LoginForm.vue'
 
 export default {
   name: 'Djavule',
   computed: {
-      isLogged() {
-          return false
+      ...mapState(['loggedIn'])
+  },
+  methods: {
+      logOut() {
+          this.$store.dispatch('logOut')
       }
   },
   components: {

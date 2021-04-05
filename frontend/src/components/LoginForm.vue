@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-contaier>
+        <b-container>
          <b-form @submit="onSubmit" class="mx-auto" id="login-form">
             <b-form-group label="Your Name:">
                 <b-form-input v-model="username" required />
@@ -13,13 +13,14 @@
             </div>
             <div v-if="error_msg">{{error_msg}}</div>
          </b-form>
-        </b-contaier>
+        </b-container>
     </div>
 </template>
 
 <script>
 
 import axios from 'axios'
+import { mapActions } from 'vuex'
 
 const TOKEN_URL = 'http://127.0.0.1:8000/api/token/'
 
@@ -33,6 +34,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(['setToken']),
         onSubmit(event) {
             event.preventDefault()
             axios.post(TOKEN_URL, {
@@ -40,10 +42,10 @@ export default {
                 password: this.password
             }).then(
                 response => {
-                    this.error_msg = response.data
+                    this.setToken(response.data.token)
                 },
                 error => {
-                    this.error_msg = error
+                    this.error_msg = error.response.data
                 })
         }
     }
