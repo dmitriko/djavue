@@ -9,7 +9,7 @@
           </b-navbar-nav>
       </b-navbar>
       <LoginForm  v-if="!loggedIn" />
-      <div v-if="loggedIn">SubmitJob Form</div>
+      <SubmitJobForm v-if="loggedIn" />
 
  </div>
 </template>
@@ -17,6 +17,7 @@
 <script>
 import { mapState } from 'vuex'
 import LoginForm from './components/LoginForm.vue'
+import SubmitJobForm from './components/SubmitJobForm.vue'
 
 export default {
   name: 'Djavule',
@@ -29,7 +30,8 @@ export default {
       }
   },
   components: {
-      LoginForm
+      LoginForm,
+      SubmitJobForm
   }
 }
 </script>
