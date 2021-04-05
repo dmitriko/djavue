@@ -9,26 +9,42 @@
                 <b-form-input v-model="password" required type="password" />
             </b-form-group>
             <div class="col-md-12 text-center">
-              <b-button size="lg" type="submit" variant="primary">Login</b-button>
+              <b-button size="lg" type="submit" variant="outline-primary">Login</b-button>
             </div>
+            <div v-if="error_msg">{{error_msg}}</div>
          </b-form>
         </b-contaier>
     </div>
 </template>
 
 <script>
+
+import axios from 'axios'
+
+const TOKEN_URL = 'http://127.0.0.1:8000/api/token/'
+
 export default {
     name: 'LoginForm',
     data() {
         return {
             "username": "",
-            "password": ""
+            "password": "",
+            "error_msg": ""
         }
     },
     methods: {
         onSubmit(event) {
             event.preventDefault()
-            alert(this.username)
+            axios.post(TOKEN_URL, {
+                username: this.username,
+                password: this.password
+            }).then(
+                response => {
+                    this.error_msg = response.data
+                },
+                error => {
+                    this.error_msg = error
+                })
         }
     }
 }
