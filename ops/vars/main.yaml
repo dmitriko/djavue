@@ -1,0 +1,9 @@
+---
+domain: "djavue.dmitriko.com"
+apphost_size: "s-1vcpu-1gb"
+apphost_image: "docker-18-04"
+apphost_region: "lon1"
+apphost_name: "djavue"
+apphost_ssh_key: 78869
+cuddy_image: "caddy:2.3.0"
+backend_image: "dmitriko/djavue-backend:v0.2.1-1-g84bdbdd"

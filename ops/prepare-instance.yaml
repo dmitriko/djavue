@@ -1,0 +1,36 @@
+---
+- hosts: app
+  remote_user: root
+  tasks:
+    - name: install pip
+      apt:
+        name: python3-pip
+        update_cache: yes
+        state: present
+
+    - name: install docker module
+      pip:
+        name: docker
+
+    - name: Allow all access to tcp port 80
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Allow all access to tcp port 443
+      ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+
+    - name: Create directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /opt/djavue/frontend/www
+        - /opt/djavue/frontend/caddy
+        - /opt/djavue/frontend/config
+        - /opt/djavue/backend/data
+        - /opt/djavue/backend/config
