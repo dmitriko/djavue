@@ -1,5 +1,5 @@
 {{domain}}
 
 root * /var/www
-reverse_proxy /api/* {{backend_ip}}:8000
+reverse_proxy /api/* {{backend_docker_info.container.NetworkSettings.IPAddress}}:8000
 file_server

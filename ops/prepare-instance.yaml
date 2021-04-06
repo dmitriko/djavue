@@ -1,4 +1,5 @@
 ---
+
 - hosts: app
   remote_user: root
   vars_files:
@@ -57,4 +58,31 @@
           DJANGO_SETTINGS_MODULE: "djavue.settings.prod"
         restart_policy: "unless-stopped"
       register: backend_docker_info
+      
+    - name: Put Caddy config
+      template:
+        src: ./Caddyfile.j2
+        dest: /opt/djavue/frontend/config/Caddyfile
 
+    - name: Build frontend
+      local_action: ansible.builtin.command cd ../frontend/ && yarn build 
+ 
+    - name: Upload frontend files
+      ansible.posix.synchronize:
+        src: ../frontend/dist/
+        dest: /opt/djavue/frontend/www
+
+    - name: Start frontend container
+      docker_container:
+        name: "djavue-frontend"
+        image: "{{frontend_image}}"
+        state: started
+        container_default_behavior: "no_defaults"
+        published_ports:
+          - 0.0.0.0:80:80
+          - 0.0.0.0:443:443
+        volumes:
+          - /opt/djavue/frontend/config/Caddyfile:/etc/caddy/Caddyfile
+          - /opt/djavue/frontend/data:/data
+          - /opt/djavue/frontend/www:/var/www
+        restart_policy: "unless-stopped"
