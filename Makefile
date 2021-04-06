@@ -2,6 +2,7 @@
 .PHONY: venv-update test build-backend migrate 
 
 PIP = venv/bin/pip
+TAG := $(shell git describe)
 
 venv:
 	python3 -m venv venv
@@ -18,4 +19,4 @@ migrate:
 	python manage.py migrate
 
 build-backend:
-	docker build . -f Dockerfile.backend -t dmitriko/djavue-backend:latest
+	docker build . -f Dockerfile.backend -t dmitriko/djavue-backend:${TAG}
