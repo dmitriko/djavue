@@ -56,6 +56,7 @@
           - /opt/djavue/backend/data:/app/djavue/data
         env:
           DJANGO_SETTINGS_MODULE: "djavue.settings.prod"
+        command: sleep inf 
         restart_policy: "unless-stopped"
       register: backend_docker_info
       
