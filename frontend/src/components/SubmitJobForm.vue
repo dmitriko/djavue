@@ -25,7 +25,7 @@ import AuthImage from './AuthImage.vue'
 
 import axios from 'axios'
 
-const JOB_URL = 'http://127.0.0.1:8000/api/job/'
+const JOB_URL = process.env.JOB_URL
 
 export default {
     name: 'SubmitJobForm',

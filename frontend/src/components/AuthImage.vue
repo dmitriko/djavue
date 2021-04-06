@@ -6,7 +6,7 @@
 
 import axios from 'axios'
 
-const IMAGE_URL = 'http://127.0.0.1:8000/api/image/'
+const IMAGE_URL = process.env.IMAGE_URL
 
 export default {
     name: 'AuthImage',
