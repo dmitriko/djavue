@@ -1,5 +1,5 @@
 <template>
-    <b-img :src="image_src_data" fluid />
+    <b-img class="auth-image" :src="image_src_data" fluid />
 </template>
 
 <script>
@@ -43,3 +43,10 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+ .auth-image {
+     border-style: dotted;
+ }
+</style>
+

@@ -15,11 +15,13 @@
                  </div>
                  <div v-if="error_msg">{{error_msg}}</div>
             </div>
+                 <AuthImage v-for="image in result_images" :key="image.pk" :pk="image.pk" />
         </b-container>
     </div>
 </template>
 
 <script>
+import AuthImage from './AuthImage.vue'
 
 import axios from 'axios'
 
@@ -27,9 +29,13 @@ const JOB_URL = 'http://127.0.0.1:8000/api/job/'
 
 export default {
     name: 'SubmitJobForm',
+    components: {
+        AuthImage
+    },
     data() {
         return {
             'error_msg': '',
+            'result_images': [],
             'file': null,
             'kind': null,
             'kind_options': [
@@ -44,6 +50,13 @@ export default {
     methods: {
         clearErrMsg() {
             this.error_msg = ''
+        },
+        fetchResults(job_id) {
+            axios.get(JOB_URL + job_id + '/',
+                {headers: {'Authorization': 'Token ' + this.$store.state.token}}
+            ).then(response => {
+                this.result_images = response.data.data.images
+            }).catch(error => {this.error_msg = error.response.data})
         },
         submitJob() {
             if (!this.kind) {
@@ -68,7 +81,7 @@ export default {
                     'Authorization': auth
                     }
                 }).then(response => {
-                    console.log(response.data)
+                    this.fetchResults(response.data.job_id)
                 }).catch(error => {
                     if (error.response.data && error.response.data.detail == 'Invalid token.'){
                         this.$store.dispatch('logOut')
@@ -87,6 +100,7 @@ export default {
   #submit-job-form {
      width: 50%;
      margin-top: 10px;
+     margin-bottom: 50px;
  }
  #kind-select {
      margin-top: 10px;
