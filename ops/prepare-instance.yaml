@@ -1,7 +1,11 @@
 ---
 - hosts: app
   remote_user: root
+  vars_files:
+    - vars/main.yaml
+    - vars/secret.yaml
   tasks:
+
     - name: install pip
       apt:
         name: python3-pip
@@ -34,3 +38,21 @@
         - /opt/djavue/frontend/config
         - /opt/djavue/backend/data
         - /opt/djavue/backend/config
+
+    - name: Put Django prod config
+      ansible.builtin.template:
+        src: ./prod_settings.py.j2
+        dest: /opt/djavue/backend/config/prod.py
+
+    - name: Start backend container
+      docker_container:
+        name: "djavue-backend"
+        image: "{{backend_image}}"
+        state: started
+        container_default_behavior: "no_defaults"
+        volumes:
+          - /opt/djavue/backend/config/prod.py:/app/djavue/settings/prod.py
+          - /opt/djavue/backend/data:/app/djavue/data
+        restart_policy: "unless-stopped"
+      register: backend_docker_info
+

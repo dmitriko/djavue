@@ -18,8 +18,9 @@ RUN set -ex \
     && apk add --virtual rundeps $runDeps \
     && apk del .build-deps
 
-ADD djavue /app
+ADD . /app/
 WORKDIR /app
+ENV PYTHONPATH /app/djavue 
 
 ENV VIRTUAL_ENV /env
 ENV PATH /env/bin:$PATH
