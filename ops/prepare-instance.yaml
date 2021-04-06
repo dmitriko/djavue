@@ -53,6 +53,8 @@
         volumes:
           - /opt/djavue/backend/config/prod.py:/app/djavue/settings/prod.py
           - /opt/djavue/backend/data:/app/djavue/data
+        env:
+          DJANGO_SETTINGS_MODULE: "djavue.settings.prod"
         restart_policy: "unless-stopped"
       register: backend_docker_info
 

@@ -1,5 +1,5 @@
 # simple make file for django/vue  project
-.PHONY: venv-update test build-backend migrate 
+.PHONY: venv-update test build-backend migrate pepare-instance
 
 PIP = venv/bin/pip
 PY = venv/bin/python
@@ -21,3 +21,6 @@ migrate:
 
 build-backend:
 	docker build . -f Dockerfile.backend -t dmitriko/djavue-backend:${TAG}
+
+prepare-instance:
+	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/prepare-instance.yaml
