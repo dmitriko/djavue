@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from PIL import Image as PILImage
 
 from djavue.core.models import JOB_KIND, Job, Image
-
+from djavue.core import image_tools
 
 
 def ok_response(job):
@@ -24,23 +24,6 @@ def handle_original(job, uploaded_file):
     return ok_response(job)
 
 
-def put_in_square(image, size):
-    '''Use PIL image and return another PIL image
-    as box, add white background for smalle side
-
-    '''
-    result_img = PILImage.new('RGB', (size, size), color=(255, 255,255))
-    result_img.paste(image, (0,0))
-    return result_img
-
-
-def get_pil_format(uploaded_file):
-    "Return JPEG or PNG"
-    if 'png' in uploaded_file.content_type:
-        return 'PNG'
-    return 'JPEG'
-
-
 def handle_square_original(job, uploaded_file):
     '''Square of original size should not stretch the image;
     you can add white background for smaller sides
@@ -48,9 +31,7 @@ def handle_square_original(job, uploaded_file):
     '''
     image_db_obj = Image.objects.create(job=job, img=uploaded_file, kind=job.kind)
     image_db_obj.save()
-    orig = PILImage.open(uploaded_file)
-    result_img = put_in_square(orig, max(orig.width, orig.height))
-    result_img.save(image_db_obj.img.path)
+    image_tools.make_square_original(uploaded_file, image_db_obj.img.path)
     return ok_response(job)
 
 
@@ -61,10 +42,7 @@ def handle_square_small(job, uploaded_file):
     '''
     image_db_obj = Image.objects.create(job=job, img=uploaded_file, kind=job.kind)
     image_db_obj.save()
-    orig = PILImage.open(uploaded_file)
-    cropped = orig.crop((0, 0, min(orig.width, 256), min(orig.height, 256)))
-    result_img = put_in_square(cropped, 256)
-    result_img.save(image_db_obj.img.path)
+    image_tools.make_square_small(uploaded_file, image_db_obj.img.path)
     return ok_response(job)
 
 
