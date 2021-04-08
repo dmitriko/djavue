@@ -11,7 +11,10 @@
                 ></b-form-file>
              <b-form-select @change="clearErrMsg" id="kind-select" v-model="kind" :options="kind_options" />
                   <div class="col-md-12 text-center">
-                      <b-button @click="submitJob">Submit</b-button>
+                      <b-button @click="submitJob" :disabled="loading">
+                          <b-spinner small label="Loading..." v-if="loading" ></b-spinner>
+                          Submit
+                      </b-button>
                  </div>
                  <div v-if="error_msg">{{error_msg}}</div>
             </div>
@@ -43,6 +46,7 @@ export default {
             'result_images': [],
             'file': null,
             'kind': null,
+            'loading': false,
             'kind_options': [
                  { value: null, text: 'Please, select a kind of a job' },
                  { value: 'original', text: 'Save original' },
@@ -60,8 +64,11 @@ export default {
             axios.get(JOB_URL + job_id + '/',
                 {headers: {'Authorization': 'Token ' + this.$store.state.token}}
             ).then(response => {
+                this.loading = false
                 this.result_images = response.data.images
-            }).catch(error => {this.error_msg = error.response.data})
+            }).catch(error => {
+                this.loading = false
+                this.error_msg = error.response.data})
         },
         submitJob() {
             if (!this.kind) {
@@ -77,7 +84,7 @@ export default {
             let formData = new FormData()
             formData.append('kind', this.kind)
             formData.append('file', this.file)
-
+            this.loading = true
             axios.post(JOB_URL,
                 formData,
                   {
@@ -88,6 +95,7 @@ export default {
                 }).then(response => {
                     this.fetchResults(response.data.job_id)
                 }).catch(error => {
+                    this.loading = false
                     if (error.response.data && error.response.data.detail == 'Invalid token.'){
                         this.$store.dispatch('logOut')
                         this.$router.push('/login')

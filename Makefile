@@ -1,5 +1,5 @@
 # simple make file for django/vue  project
-.PHONY: venv-update test build-backend migrate pepare-instance
+.PHONY: venv-update test build-backend migrate pepare-instance deploy-frontend deploy-backend
 
 PIP = venv/bin/pip
 PY = venv/bin/python
@@ -24,3 +24,13 @@ build-backend:
 
 prepare-instance:
 	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/prepare-instance.yaml
+
+deploy-backend:
+	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/deploy-backend.yaml
+
+deploy-frontend:
+	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/deploy-frontend.yaml
+
+
+
+

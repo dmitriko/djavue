@@ -6,4 +6,4 @@ apphost_region: "lon1"
 apphost_name: "djavue"
 apphost_ssh_key: 78869
 frontend_image: "caddy:2.3.0"
-backend_image: "dmitriko/djavue-backend:v0.2.1-5-ga4b2584"
+backend_image: "dmitriko/djavue-backend:v0.2.1-17-g2d4bc02"
