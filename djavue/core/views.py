@@ -2,12 +2,13 @@ import io
 import mimetypes
 
 from django.http import HttpResponse
+from django.contrib.auth.models import User
+from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-from PIL import Image as PILImage
+from rest_framework.authtoken.models import Token
 
 from djavue.core.models import JOB_KIND, Job, Image
 from djavue.core import image_tools
@@ -15,6 +16,10 @@ from djavue.core import image_tools
 
 def ok_response(job):
     return Response({'ok': True, 'job_id': job.id})
+
+
+def error_response(error, status=400):
+    return Response({'ok': False, 'error': error}, status=status)
 
 
 def handle_original(job, uploaded_file):
@@ -62,7 +67,26 @@ def handle_all_three(job, uploaded_file):
     return ok_response(job)
 
 
+class RegisterUser(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        invite_code = request.data.get('code')
+        if not username or not password:
+            return error_response('Missing username or password.')
+        if not invite_code or invite_code != settings.INVITE_CODE:
+            return error_response('Invitation code wrong or missing.')
+        if User.objects.filter(username=username).count() > 0:
+            return error_response('Username already exists.')
+        user = User.objects.create(username=username, password=password)
+        token = Token.objects.create(user=user)
+        return Response({'ok': True, 'token': token.key}, status=200)
+
+
 class GetImage(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk):
         try:
             image = Image.objects.get(pk=pk)
@@ -88,12 +112,12 @@ class ProcessImage(APIView):
             return Response({'ok': False}, status=404)
         if job.user != request.user:
             return Response({'ok': False}, status=403)
-        data = {'pk': job.id, 'images':[]}
+        data = {'ok': True, 'pk': job.id, 'images':[]}
         for image in Image.objects.filter(job=job):
             data['images'].append(
                     {'pk': image.id, 'kind': image.kind}
                     )
-        return Response({'ok': True, 'data': data})
+        return Response(data)
 
     def post(self, request):
         errors = []

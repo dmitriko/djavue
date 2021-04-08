@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.conf import settings
 
 from rest_framework.test import APIClient
 
@@ -68,6 +69,45 @@ class TestJobApiAccess(TestCase):
                 }
         resp = client.post(reverse('api_job'), data, format='json')
         self.assertEqual(resp.status_code, 400)
+
+
+class TestRegisterUser(TestCase):
+    def setUp(self):
+        self.url = reverse('api_user')
+        self.client = APIClient()
+
+    def test_missing_username_or_password(self):
+        for item in  [{'code':'1'},
+                {'username':'foo', 'code': '1'},
+                {'password': 'foo', 'code':'1'}]:
+            resp = self.client.post(self.url, item, format='json')
+            self.assertEqual(resp.status_code, 400)
+            self.assertFalse(resp.json()['ok'])
+            self.assertEqual(resp.json().get('error'), 'Missing username or password.')
+
+    def test_wrong_or_missing_invite_code(self):
+        for item in [{'username':'u', 'password':'p', 'code':'WRONG'},
+                {'username':'u', 'password': 'p'}]:
+            resp = self.client.post(self.url, {'username': 'foo', 'password': 'bar'})
+            self.assertEqual(resp.status_code, 400)
+            self.assertFalse(resp.json()['ok'])
+            self.assertEqual(resp.json().get('error'), 'Invitation code wrong or missing.')
+
+    def test_already_exists(self):
+        foo_user = User.objects.create_user('foo', password='bar')
+        resp = self.client.post(self.url, {
+            'username': 'foo', 'password': 'bar', 'code':settings.INVITE_CODE})
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(resp.json()['ok'])
+        self.assertEqual(resp.json().get('error'), 'Username already exists.')
+
+    def test_register_ok(self):
+        resp = self.client.post(self.url, {
+            'username': 'foo', 'password': 'bar', 'code':settings.INVITE_CODE})
+        self.assertEqual(resp.status_code, 200)
+        user = User.objects.get(username='foo')
+        token, _ = Token.objects.get_or_create(user=user)
+        self.assertEqual(resp.json().get('token'), token.key)
 
 
 class TestJobApiProcess(TestCase):
@@ -143,7 +183,7 @@ class TestJobApiProcess(TestCase):
         get_url = reverse('api_job_get', args=(job_id,))
         resp = self.client.get(get_url)
         self.assertEqual(resp.status_code, 200)
-        data = resp.json()['data']
+        data = resp.json()
         images = {}
         for item in data['images']:
             images[item['kind']] = item['pk']
