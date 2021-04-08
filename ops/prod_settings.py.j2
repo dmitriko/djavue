@@ -2,4 +2,11 @@ from .base import *
 SECRET_KEY = "{{django_secret_key}}"
 DEBUG = True
 ALLOWED_HOSTS = ['*']
-MEDIA_ROOT = '/app/djavue/data'
+MEDIA_ROOT = '/app/media'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/app/data/db.sqlite3'
+    }
+}
+
