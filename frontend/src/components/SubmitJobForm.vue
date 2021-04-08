@@ -32,6 +32,11 @@ export default {
     components: {
         AuthImage
     },
+    beforeCreate() {
+        if (!this.$store.state.loggedIn) {
+            this.$router.push('/login')
+        }
+    },
     data() {
         return {
             'error_msg': '',
@@ -39,7 +44,7 @@ export default {
             'file': null,
             'kind': null,
             'kind_options': [
-                 { value: null, text: 'Please select a job kind' },
+                 { value: null, text: 'Please, select a kind of a job' },
                  { value: 'original', text: 'Save original' },
                  { value: 'square_original', text: 'Make a big square' },
                  { value: 'square_small', text: 'Make a small square' },
@@ -85,6 +90,7 @@ export default {
                 }).catch(error => {
                     if (error.response.data && error.response.data.detail == 'Invalid token.'){
                         this.$store.dispatch('logOut')
+                        this.$router.push('/login')
                         return
                     }
                     this.error_msg = error.response.data

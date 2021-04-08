@@ -43,6 +43,7 @@ export default {
             }).then(
                 response => {
                     this.setToken(response.data.token)
+                    this.$router.push('/')
                 },
                 error => {
                     this.error_msg = error.response.data
