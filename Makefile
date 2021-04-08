@@ -29,6 +29,7 @@ deploy-backend:
 	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/deploy-backend.yaml
 
 deploy-frontend:
+	cd ./frontend/  && yarn build && cd ..
 	venv/bin/ansible-playbook -i ./ops/inventory.ini ./ops/deploy-frontend.yaml
 
 
