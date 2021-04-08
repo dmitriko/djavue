@@ -6,7 +6,7 @@
 
 import axios from 'axios'
 
-const IMAGE_URL = process.env.VUE_APP_IMAGE_URL
+const IMAGE_URL = process.env.VUE_APP_API_URL + 'image/'
 
 export default {
     name: 'AuthImage',

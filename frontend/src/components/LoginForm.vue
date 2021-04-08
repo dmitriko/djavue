@@ -22,7 +22,7 @@
 import axios from 'axios'
 import { mapActions } from 'vuex'
 
-const TOKEN_URL = process.env.VUE_APP_TOKEN_URL
+const TOKEN_URL = process.env.VUE_APP_API_URL + 'token/'
 
 export default {
     name: 'LoginForm',

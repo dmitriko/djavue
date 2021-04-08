@@ -25,7 +25,7 @@ import AuthImage from './AuthImage.vue'
 
 import axios from 'axios'
 
-const JOB_URL = process.env.VUE_APP_JOB_URL
+const JOB_URL = process.env.VUE_APP_API_URL + 'job/'
 
 export default {
     name: 'SubmitJobForm',
@@ -55,7 +55,7 @@ export default {
             axios.get(JOB_URL + job_id + '/',
                 {headers: {'Authorization': 'Token ' + this.$store.state.token}}
             ).then(response => {
-                this.result_images = response.data.data.images
+                this.result_images = response.data.images
             }).catch(error => {this.error_msg = error.response.data})
         },
         submitJob() {
