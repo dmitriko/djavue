@@ -78,7 +78,7 @@ class RegisterUser(APIView):
             return error_response('Invitation code wrong or missing.')
         if User.objects.filter(username=username).count() > 0:
             return error_response('Username already exists.')
-        user = User.objects.create(username=username, password=password)
+        user = User.objects.create_user(username=username, password=password)
         token = Token.objects.create(user=user)
         return Response({'ok': True, 'token': token.key}, status=200)
 
