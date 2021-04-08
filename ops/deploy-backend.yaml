@@ -1,0 +1,41 @@
+---
+- hosts: app
+  remote_user: root
+  vars_files:
+    - vars/main.yaml
+    - vars/secret.yaml
+  tasks:
+
+    - name: Put Django prod config
+      ansible.builtin.template:
+        src: ./prod_settings.py.j2
+        dest: /opt/djavue/backend/config/prod.py
+
+    - name: Remove running backend container
+      docker_container:
+        name: "djavue-backend"
+        container_default_behavior: "no_defaults"
+        state: absent
+
+    - name: Start backend container
+      docker_container:
+        name: "djavue-backend"
+        image: "{{backend_image}}"
+        state: started
+        container_default_behavior: "no_defaults"
+        volumes:
+          - /opt/djavue/backend/config/prod.py:/app/djavue/settings/prod.py
+          - /opt/djavue/backend/data:/app/data
+          - /opt/djavue/backend/media:/app/media
+        env:
+          DJANGO_SETTINGS_MODULE: "djavue.settings.prod"
+        command: "gunicorn --bind 0.0.0.0:8000 --workers  3 --access-logfile - --error-logfile - djavue.wsgi"
+        restart_policy: "unless-stopped"
+      register: backend_docker_info
+
+    - name: Django migration
+      block:
+        - name: Make migrations
+          command: docker exec -it djavue-backend python manage.py makemigrations
+        - name: Manage migrate
+          command: docker exec -it djavue-backend python manage.py migrate
