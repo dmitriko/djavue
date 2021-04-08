@@ -1,0 +1,48 @@
+---
+- hosts: app
+  remote_user: root
+  vars_files:
+    - vars/main.yaml
+    - vars/secret.yaml
+  tasks:
+    - name: Fetch backend IP
+      docker_container:
+        name: djavue-backend
+        container_default_behavior: "no_defaults"
+      register: backend_docker_info
+      changed_when: false
+
+    - name: Put Caddy config
+      template:
+        src: ./Caddyfile.j2
+        dest: /opt/djavue/frontend/config/Caddyfile
+      notify:
+        - reload caddy config
+
+    - name: Build frontend
+      local_action: ansible.builtin.command cd ../frontend/ && yarn build 
+
+    - name: Upload frontend files
+      ansible.posix.synchronize:
+        src: ../frontend/dist/
+        dest: /opt/djavue/frontend/www
+
+    - name: Start frontend container
+      docker_container:
+        name: "djavue-frontend"
+        image: "{{frontend_image}}"
+        state: started
+        container_default_behavior: "no_defaults"
+        published_ports:
+          - 0.0.0.0:80:80
+          - 0.0.0.0:443:443
+        volumes:
+          - /opt/djavue/frontend/config/Caddyfile:/etc/caddy/Caddyfile
+          - /opt/djavue/frontend/data:/data
+          - /opt/djavue/frontend/www:/var/www
+        restart_policy: "unless-stopped"
+    
+  handlers:
+    - name: reload caddy config
+      command: docker exec -it djavue-frontend caddy reload
+
