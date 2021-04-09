@@ -1,0 +1,61 @@
+django-admin startproject djavue .
+cd djavue && python manage.py startapp core
+
+from django.core.management.utils import get_random_secret_key
+print(get_random_secret_key())
+
+;
+>>> from django.test.utils import setup_test_environment
+>>> setup_test_environment()
+
+vue create frontend && cd frontend
+npm install vue-router
+npm install vuex
+npm install vee-validate@2.2.15
+npm install axios
+npm install bootstrap jquery popper.js
+npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/vue-fontawesome
+
+                 <AuthImage v-for="image in result_images" :key="image.pk" :pk="image.pk" />
+
+
+File "/Users/dm/enj/djavue/djavue/core/views.py", line 37, in handle_square_original
+    image_db_obj = Image.objects.create(job=job, img=uploaded_file, kind=job.kind)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/manager.py", line 85, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/query.py", line 447, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/base.py", line 754, in save
+    force_update=force_update, update_fields=update_fields)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/base.py", line 792, in save_base
+    force_update, using, update_fields,
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/base.py", line 895, in _save_table
+    results = self._do_insert(cls._base_manager, using, fields, returning_fields, raw)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/base.py", line 935, in _do_insert
+    using=using, raw=raw,
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/manager.py", line 85, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/query.py", line 1254, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/sql/compiler.py", line 1396, in execute_sql
+    for sql, params in self.as_sql():
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/sql/compiler.py", line 1341, in as_sql
+    for obj in self.query.objs
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/sql/compiler.py", line 1341, in <listcomp>
+    for obj in self.query.objs
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/sql/compiler.py", line 1340, in <listcomp>
+    [self.prepare_value(field, self.pre_save_val(field, obj)) for field in fields]
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/sql/compiler.py", line 1291, in pre_save_val
+    return field.pre_save(obj, add=True)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/fields/files.py", line 307, in pre_save
+    file.save(file.name, file.file, save=False)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/db/models/fields/files.py", line 87, in save
+    self.name = self.storage.save(name, content, max_length=self.field.max_length)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/core/files/storage.py", line 52, in save
+    return self._save(name, content)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/core/files/storage.py", line 262, in _save
+    file_move_safe(content.temporary_file_path(), full_path)
+  File "/Users/dm/enj/djavue/venv/lib/python3.7/site-packages/django/core/files/move.py", line 56, in file_move_safe
+    with open(old_file_name, 'rb') as old_file:
+FileNotFoundError: [Errno 2] No such file or directory: '/var/folders/6h/2c8gzlwx0cd1g2g20h55b3mc0000gn/T/tmptz7fp5af.upload.JPG'
+[08/Apr/2021 12:18:22] "POST /api/job/ HTTP/1.1" 500 179382
