@@ -36,17 +36,24 @@ func (dbw *DBWorker) QueryRow(query string, args ...interface{}) *sql.Row {
 	return dbw.DB.QueryRow(query, args...)
 }
 
-func (dbw *DBWorker) Write(sqls ...*SQL) error {
+func (dbw *DBWorker) WriteOne(query string, args ...interface{}) error {
 	dbw.mu.Lock()
 	defer dbw.mu.Unlock()
-	if len(sqls) == 1 {
-		stmt, err := dbw.DB.Prepare(sqls[0].Q)
-		if err != nil {
-			return err
-		}
-		_, err = stmt.Exec(sqls[0].Args...)
+	stmt, err := dbw.DB.Prepare(query)
+	if err != nil {
 		return err
+	}
+	_, err = stmt.Exec(args...)
+	return err
+
+}
+
+func (dbw *DBWorker) Write(sqls ...*SQL) error {
+	if len(sqls) == 1 {
+		return dbw.WriteOne(sqls[0].Q, sqls[0].Args...)
 	} else {
+		dbw.mu.Lock()
+		defer dbw.mu.Unlock()
 		tx, err := dbw.DB.Begin()
 		if err != nil {
 			return err
