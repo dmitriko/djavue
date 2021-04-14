@@ -25,3 +25,11 @@ func NewUser(username, password string) (*User, error) {
 	user := &User{ID: id, Username: username, Password: string(hash), Token: token}
 	return user, nil
 }
+
+func (u *User) IsPasswdValid(passwd string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(passwd))
+	if err != nil {
+		return false
+	}
+	return true
+}
