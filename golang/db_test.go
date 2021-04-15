@@ -58,8 +58,6 @@ func TestMutithreadWrite(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	//	cmd := exec.Command("stat", dbw.Path)
-	//	assert.Nil(t, cmd.Run())
 	var name string
 	err = dbw.QueryRow("select name from foo where id = ?", 1).Scan(&name)
 	assert.Nil(t, err)
