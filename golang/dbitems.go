@@ -18,6 +18,19 @@ func (dbw *DBWorker) SaveNewUser(user *User) error {
 		user.ID, user.Username, user.Password, user.Token)
 }
 
+func (dbw *DBWorker) SaveUser(user *User) error {
+	_, err := dbw.NamedExec(`update users 
+                            set username=:username, password=:password, token=:token
+							where id=:id`, user)
+	return err
+}
+
+func (dbw *DBWorker) LoadUser(id string) (*User, error) {
+	user := &User{}
+	err := dbw.DB.Get(user, "select * from users where id=?", id)
+	return user, err
+}
+
 func NewUser(username, password string) (*User, error) {
 	token, err := NewToken()
 	if err != nil {

@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"sync"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type DBWorker struct {
 	Path string
-	DB   *sql.DB
+	DB   *sqlx.DB
 	mu   sync.Mutex
 }
 
@@ -23,7 +24,7 @@ func sqlStmt(query string, args ...interface{}) *SQL {
 }
 
 func NewDBWorker(path string) (*DBWorker, error) {
-	db, err := sql.Open("sqlite3", path)
+	db, err := sqlx.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +74,12 @@ func (dbw *DBWorker) Write(sqls ...*SQL) error {
 		tx.Commit()
 	}
 	return nil
+}
+
+func (dbw *DBWorker) NamedExec(query string, arg interface{}) (sql.Result, error) {
+	dbw.mu.Lock()
+	defer dbw.mu.Unlock()
+	return dbw.DB.NamedExec(query, arg)
 }
 
 func (dbw *DBWorker) Close() {
