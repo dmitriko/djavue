@@ -70,3 +70,44 @@ func TestUserUpdate(t *testing.T) {
 	assert.Equal(t, token, u.Token)
 
 }
+
+func TestJobNew(t *testing.T) {
+	user, _ := NewUser("foo", "bar")
+	job, err := NewJob(user.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, job.UserID, user.ID)
+}
+
+func TestJobNewSave(t *testing.T) {
+	dbw, err := testDBWorker()
+	if assert.Nil(t, err) {
+		defer removeWorker(dbw)
+	}
+	_ = dbw.CreateUserTable()
+	_ = dbw.CreateJobTable()
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	dbw.SaveNewUser(user)
+	dbw.SaveNewJob(job)
+	var job_id, user_id, state string
+	assert.Nil(t, dbw.QueryRow("select id, user_id, state from jobs where id = ?", job.ID).Scan(&job_id, &user_id, &state))
+}
+
+func TestJobSave(t *testing.T) {
+	dbw, err := testDBWorker()
+	if assert.Nil(t, err) {
+		defer removeWorker(dbw)
+	}
+	_ = dbw.CreateUserTable()
+	_ = dbw.CreateJobTable()
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	dbw.SaveNewUser(user)
+	dbw.SaveNewJob(job)
+	assert.Equal(t, int64(0), job.State)
+	job.State = 1
+	assert.Nil(t, dbw.SaveJob(job))
+	var job_state int64
+	assert.Nil(t, dbw.QueryRow("select state from jobs where id = ?", job.ID).Scan(&job_state))
+	assert.Equal(t, int64(1), job_state)
+}
