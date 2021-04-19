@@ -49,6 +49,13 @@ func (dbw *DBWorker) WriteOne(query string, args ...interface{}) error {
 
 }
 
+func (dbw *DBWorker) Get(dest interface{}, query string, args ...interface{}) error {
+	dbw.mu.Lock()
+	defer dbw.mu.Unlock()
+	return dbw.DB.Get(dest, query, args...)
+}
+
+// Writes to database inside transaction
 func (dbw *DBWorker) Write(sqls ...*SQL) error {
 	if len(sqls) == 1 {
 		return dbw.WriteOne(sqls[0].Q, sqls[0].Args...)

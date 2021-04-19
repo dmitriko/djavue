@@ -17,15 +17,15 @@ const (
 
 type Job struct {
 	ID     string
-	UserID string
+	UserID string `db:"user_id"`
 	State  int64
 }
 
 type Image struct {
 	ID       string
-	UserID   string
-	JobID    string
-	MimeType string
+	UserID   string `db:"user_id"`
+	JobID    string `db:"job_id"`
+	MimeType string `db:"mime_type"`
 	Path     string
 }
 
@@ -55,9 +55,10 @@ func (dbw *DBWorker) CreateImageTable() error {
 			user_id text not null,
 			job_id text not null,
 			path text unique not null,
+			mime_type text not null,
 			foreign key (user_id)
 				references users (id),
-			foreign key (job_id),
+			foreign key (job_id)
 				references jobs (id)
 			)`
 	return dbw.WriteOne(schema)
@@ -77,7 +78,7 @@ func (dbw *DBWorker) SaveUser(user *User) error {
 
 func (dbw *DBWorker) LoadUser(id string) (*User, error) {
 	user := &User{}
-	err := dbw.DB.Get(user, "select * from users where id=?", id)
+	err := dbw.Get(user, "select * from users where id=?", id)
 	return user, err
 }
 
@@ -126,6 +127,12 @@ func (dbw *DBWorker) SaveJob(job *Job) error {
 	return dbw.WriteOne("update jobs set state = ? where id = ?", job.State, job.ID)
 }
 
+func (dbw *DBWorker) LoadJob(jobID string) (*Job, error) {
+	var j Job
+	err := dbw.Get(&j, "select * from jobs where id=?", jobID)
+	return &j, err
+}
+
 func NewImage(job *Job, path, mimeType string) (*Image, error) {
 	img := &Image{}
 	id, err := NewULIDNow()
@@ -135,6 +142,19 @@ func NewImage(job *Job, path, mimeType string) (*Image, error) {
 	img.ID = id
 	img.JobID = job.ID
 	img.UserID = job.UserID
+	img.Path = path
 	return img, nil
+}
 
+func (dbw *DBWorker) SaveNewImage(img *Image) error {
+	_, err := dbw.NamedExec(`insert into images (
+		id, job_id, user_id, path, mime_type) values (
+		:id, :job_id, :user_id, :path, :mime_type)`, img)
+	return err
+}
+
+func (dbw *DBWorker) LoadImage(id string) (*Image, error) {
+	var img Image
+	err := dbw.Get(&img, "select * from images where id = ?", id)
+	return &img, err
 }

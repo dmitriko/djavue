@@ -111,3 +111,64 @@ func TestJobSave(t *testing.T) {
 	assert.Nil(t, dbw.QueryRow("select state from jobs where id = ?", job.ID).Scan(&job_state))
 	assert.Equal(t, int64(1), job_state)
 }
+
+func TestJobLoad(t *testing.T) {
+	dbw, err := testDBWorker()
+	if assert.Nil(t, err) {
+		defer removeWorker(dbw)
+	}
+	_ = dbw.CreateUserTable()
+	_ = dbw.CreateJobTable()
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	dbw.SaveNewUser(user)
+	dbw.SaveNewJob(job)
+	j, err := dbw.LoadJob(job.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, user.ID, j.UserID)
+}
+
+func TestImageNew(t *testing.T) {
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	img, _ := NewImage(job, "foo.jpg", "image/jpeg")
+	assert.Equal(t, "foo.jpg", img.Path)
+}
+
+func TestImageSaveNew(t *testing.T) {
+	dbw, err := testDBWorker()
+	if assert.Nil(t, err) {
+		defer removeWorker(dbw)
+	}
+	_ = dbw.CreateUserTable()
+	_ = dbw.CreateJobTable()
+	assert.Nil(t, dbw.CreateImageTable())
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
+	dbw.SaveNewUser(user)
+	dbw.SaveNewJob(job)
+	assert.Nil(t, dbw.SaveNewImage(img))
+	var path string
+	dbw.QueryRow("select path from images where id=?", img.ID).Scan(&path)
+	assert.Equal(t, "/tmp/foo.jpg", path)
+}
+
+func TestImageLoad(t *testing.T) {
+	dbw, err := testDBWorker()
+	if assert.Nil(t, err) {
+		defer removeWorker(dbw)
+	}
+	_ = dbw.CreateUserTable()
+	_ = dbw.CreateJobTable()
+	assert.Nil(t, dbw.CreateImageTable())
+	user, _ := NewUser("foo", "bar")
+	job, _ := NewJob(user.ID)
+	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
+	dbw.SaveNewUser(user)
+	dbw.SaveNewJob(job)
+	assert.Nil(t, dbw.SaveNewImage(img))
+	imgLoaded, err := dbw.LoadImage(img.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, img.ID, imgLoaded.ID)
+}
