@@ -64,6 +64,19 @@ func (dbw *DBWorker) CreateImageTable() error {
 	return dbw.WriteOne(schema)
 }
 
+func (dbw *DBWorker) createTables() error {
+	if err := dbw.CreateUserTable(); err != nil {
+		return err
+	}
+	if err := dbw.CreateJobTable(); err != nil {
+		return err
+	}
+	if err := dbw.CreateImageTable(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dbw *DBWorker) SaveNewUser(user *User) error {
 	return dbw.WriteOne("insert into users (id, username, password, token) values (?,?,?,?)",
 		user.ID, user.Username, user.Password, user.Token)
@@ -79,6 +92,12 @@ func (dbw *DBWorker) SaveUser(user *User) error {
 func (dbw *DBWorker) LoadUser(id string) (*User, error) {
 	user := &User{}
 	err := dbw.Get(user, "select * from users where id=?", id)
+	return user, err
+}
+
+func (dbw *DBWorker) LoadUserByName(username string) (*User, error) {
+	user := &User{}
+	err := dbw.Get(user, "select * from users where username=?", username)
 	return user, err
 }
 
@@ -100,6 +119,9 @@ func NewUser(username, password string) (*User, error) {
 }
 
 func (u *User) IsPasswdValid(passwd string) bool {
+	if passwd == "" {
+		return false // no empty passwords allowed
+	}
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(passwd))
 	if err != nil {
 		return false

@@ -48,9 +48,12 @@ func TestUserLoad(t *testing.T) {
 	user2, err := NewUser("spam", "egg")
 	assert.Nil(t, err)
 	assert.Nil(t, dbw.SaveNewUser(user2))
-	u, err := dbw.LoadUser(user2.ID)
+	u2, err := dbw.LoadUser(user2.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, "spam", u.Username)
+	assert.Equal(t, "spam", u2.Username)
+	u1, err := dbw.LoadUserByName(user1.Username)
+	assert.Nil(t, err)
+	assert.Equal(t, u1.ID, user1.ID)
 }
 
 func TestUserUpdate(t *testing.T) {
