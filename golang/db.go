@@ -2,11 +2,23 @@ package main
 
 import (
 	"database/sql"
+	"strings"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+type NotFoundError struct {
+	Msg string
+}
+
+func (err NotFoundError) Error() string {
+	if err.Msg != "" {
+		return err.Msg
+	}
+	return "RecordNotFound"
+}
 
 type DBWorker struct {
 	Path string
@@ -52,7 +64,13 @@ func (dbw *DBWorker) WriteOne(query string, args ...interface{}) error {
 func (dbw *DBWorker) Get(dest interface{}, query string, args ...interface{}) error {
 	dbw.mu.Lock()
 	defer dbw.mu.Unlock()
-	return dbw.DB.Get(dest, query, args...)
+	err := dbw.DB.Get(dest, query, args...)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			return NotFoundError{}
+		}
+	}
+	return err
 }
 
 // Writes to database inside transaction
