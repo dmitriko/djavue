@@ -1,6 +1,10 @@
 package main
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"errors"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type User struct {
 	ID       string
@@ -15,10 +19,25 @@ const (
 	JobStateDone
 )
 
+const (
+	JOB_ORIG         = "original"
+	JOB_SQUARE_ORIG  = "square_original"
+	JOB_SQUARE_SMALL = "square_small"
+	JOB_ALL_THREE    = "all_three"
+)
+
+var JobKind = map[string]bool{
+	JOB_ORIG:         true,
+	JOB_SQUARE_ORIG:  true,
+	JOB_SQUARE_SMALL: true,
+	JOB_ALL_THREE:    true,
+}
+
 type Job struct {
 	ID     string
 	UserID string `db:"user_id"`
 	State  int64
+	Kind   string
 }
 
 type Image struct {
@@ -42,7 +61,8 @@ func (dbw *DBWorker) CreateJobTable() error {
 	schema := `create table jobs (
 			id text primary key,
 			user_id text not null,
-			state int nut null,
+			state int not null,
+			kind text not null,
 			foreign key (user_id) 
 				references users (id)
 				)`
@@ -101,6 +121,12 @@ func (dbw *DBWorker) LoadUserByName(username string) (*User, error) {
 	return user, err
 }
 
+func (dbw *DBWorker) LoadUserByToken(token string) (*User, error) {
+	user := &User{}
+	err := dbw.Get(user, "select * from users where token=?", token)
+	return user, err
+}
+
 func NewUser(username, password string) (*User, error) {
 	token, err := NewToken()
 	if err != nil {
@@ -129,7 +155,10 @@ func (u *User) IsPasswdValid(passwd string) bool {
 	return true
 }
 
-func NewJob(userID string) (*Job, error) {
+func NewJob(userID, kind string) (*Job, error) {
+	if !JobKind[kind] {
+		return nil, errors.New("Wrong job kind.")
+	}
 	job := &Job{}
 	id, err := NewULIDNow()
 	if err != nil {
@@ -138,6 +167,7 @@ func NewJob(userID string) (*Job, error) {
 	job.ID = id
 	job.UserID = userID
 	job.State = JobStateStarted
+	job.Kind = kind
 	return job, nil
 }
 

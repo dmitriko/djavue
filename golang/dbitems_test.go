@@ -76,7 +76,7 @@ func TestUserUpdate(t *testing.T) {
 
 func TestJobNew(t *testing.T) {
 	user, _ := NewUser("foo", "bar")
-	job, err := NewJob(user.ID)
+	job, err := NewJob(user.ID, JOB_ORIG)
 	assert.Nil(t, err)
 	assert.Equal(t, job.UserID, user.ID)
 }
@@ -89,7 +89,7 @@ func TestJobNewSave(t *testing.T) {
 	_ = dbw.CreateUserTable()
 	_ = dbw.CreateJobTable()
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, JOB_ALL_THREE)
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	var job_id, user_id, state string
@@ -104,7 +104,7 @@ func TestJobSave(t *testing.T) {
 	_ = dbw.CreateUserTable()
 	_ = dbw.CreateJobTable()
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, "original")
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	assert.Equal(t, int64(0), job.State)
@@ -123,7 +123,7 @@ func TestJobLoad(t *testing.T) {
 	_ = dbw.CreateUserTable()
 	_ = dbw.CreateJobTable()
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, JOB_SQUARE_ORIG)
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	j, err := dbw.LoadJob(job.ID)
@@ -133,7 +133,7 @@ func TestJobLoad(t *testing.T) {
 
 func TestImageNew(t *testing.T) {
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, JOB_ORIG)
 	img, _ := NewImage(job, "foo.jpg", "image/jpeg")
 	assert.Equal(t, "foo.jpg", img.Path)
 }
@@ -147,7 +147,7 @@ func TestImageSaveNew(t *testing.T) {
 	_ = dbw.CreateJobTable()
 	assert.Nil(t, dbw.CreateImageTable())
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, JOB_ORIG)
 	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
@@ -166,7 +166,7 @@ func TestImageLoad(t *testing.T) {
 	_ = dbw.CreateJobTable()
 	assert.Nil(t, dbw.CreateImageTable())
 	user, _ := NewUser("foo", "bar")
-	job, _ := NewJob(user.ID)
+	job, _ := NewJob(user.ID, JOB_ORIG)
 	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)

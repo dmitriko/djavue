@@ -20,6 +20,11 @@ func (err NotFoundError) Error() string {
 	return "RecordNotFound"
 }
 
+func IsNotFound(err error) bool {
+	_, ok := err.(NotFoundError)
+	return ok
+}
+
 type DBWorker struct {
 	Path string
 	DB   *sqlx.DB
