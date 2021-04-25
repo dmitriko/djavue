@@ -11,6 +11,7 @@ import (
 	"net/textproto"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -282,6 +283,33 @@ func TestApiJobGet(t *testing.T) {
 	require.True(t, resp.OK)
 	assert.Equal(t, job.ID, resp.PK)
 	assert.Equal(t, 1, len(resp.Images))
+}
+
+func TestApiImageGet(t *testing.T) {
+	dbw, err := testDBWorker()
+	defer removeWorker(dbw)
+	assert.Nil(t, err)
+	assert.Nil(t, dbw.createTables())
+	user, _ := createTestUser("foo", "bar", dbw)
+	os.MkdirAll("/tmp/foo", os.ModePerm)
+	defer os.Remove("/tmp/foo")
+	job, _ := NewJob(user.ID, JOB_ORIG)
+	img, _ := NewImage(job, "/tmp/foo", "foo.png", "image/png")
+	require.Nil(t, dbw.SaveNewJob(job))
+	require.Nil(t, dbw.SaveNewImage(img))
+	cpCmd := exec.Command("cp", "test_data/img.png", img.Path)
+	require.Nil(t, cpCmd.Run())
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/image/%s/", img.ID), nil)
+	req.Header.Add("Authorization", "Token "+user.Token)
+
+	w := httptest.NewRecorder()
+	router := setupRouter(dbw, "/tmp/foo")
+	router.ServeHTTP(w, req)
+	require.Equal(t, 200, w.Code)
+	contentType, ok := w.HeaderMap["Content-Type"]
+	require.True(t, ok)
+	assert.Equal(t, "image/png", contentType[0])
+
 }
 
 // Returns buffer with form, content type and error

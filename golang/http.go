@@ -89,6 +89,31 @@ type JobResp struct {
 	Images []ImgResp `json:"images"`
 }
 
+func (app *App) getApiImage(c *gin.Context) {
+	user, ok := c.MustGet("user").(*User)
+	if !ok {
+		respondErr(c, 401, "Not authorized")
+		return
+	}
+	id := c.Param("id")
+	var img Image
+	if err := app.DBW.LoadImage(&img, id); err != nil {
+		if IsNotFound(err) {
+			respondErr(c, 404, "Could not find")
+			return
+		} else {
+			respondErr(c, 500, "Could not fetch")
+			return
+		}
+	}
+	if user.ID != img.UserID {
+		respondErr(c, 403, "Not allowed")
+		return
+	}
+	c.Header("Content-Type", img.MimeType)
+	c.File(img.Path)
+}
+
 func (app *App) getApiJob(c *gin.Context) {
 	user, ok := c.MustGet("user").(*User)
 	if !ok {
@@ -187,10 +212,11 @@ func setupRouter(dbw *DBWorker, mediaRoot string) *gin.Engine {
 	if _, err := os.Stat(mediaRoot); os.IsNotExist(err) {
 		log.Fatalf("%s is not accessible", mediaRoot)
 	}
-	r := gin.New()
+	r := gin.Default()
 	app := &App{dbw, mediaRoot}
 	r.POST("/api/token/", app.postApiToken)
 	r.POST("/api/job/", AuthMiddleware(dbw), app.postApiJob)
 	r.GET("/api/job/:id/", AuthMiddleware(dbw), app.getApiJob)
+	r.GET("/api/image/:id/", AuthMiddleware(dbw), app.getApiImage)
 	return r
 }

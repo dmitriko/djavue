@@ -186,11 +186,6 @@ func (dbw *DBWorker) LoadJob(j *Job, jobID string) error {
 	return dbw.Get(j, "select * from jobs where id=?", jobID)
 }
 
-func NewImageFromFileHeader(job *Job, fileHeader *multipart.FileHeader, mediaRoot string) (*Image, error) {
-	img := &Image{}
-	return img, nil
-}
-
 func NewImage(job *Job, mediaRoot, fileName, mimeType string) (*Image, error) {
 	img := &Image{}
 	id, err := NewULIDNow()
@@ -201,6 +196,7 @@ func NewImage(job *Job, mediaRoot, fileName, mimeType string) (*Image, error) {
 	img.JobID = job.ID
 	img.UserID = job.UserID
 	img.Path = filepath.Join(mediaRoot, fmt.Sprintf("%s_%s", id, fileName))
+	img.MimeType = mimeType
 	return img, nil
 }
 
