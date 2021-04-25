@@ -187,6 +187,45 @@ func TestApiJobPostSquareOrig(t *testing.T) {
 	assert.Equal(t, img.Size, stat.Size())
 }
 
+func TestApiJobPostSquareSmall(t *testing.T) {
+	dbw, err := testDBWorker()
+	defer removeWorker(dbw)
+	assert.Nil(t, err)
+	assert.Nil(t, dbw.createTables())
+	user, _ := createTestUser("foo", "bar", dbw)
+	os.MkdirAll("/tmp/foo", os.ModePerm)
+	defer os.Remove("/tmp/foo")
+	router := setupRouter(dbw, "/tmp/foo")
+
+	buf, contentType, err := createJobForm("test_data/img.png", "kind", "square_small")
+	require.Nil(t, err)
+	req, _ := http.NewRequest("POST", "/api/job/", buf)
+	req.Header.Add("Content-Type", contentType)
+	req.Header.Add("Authorization", "Token "+user.Token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	decoder := json.NewDecoder(w.Body)
+	var resp Resp
+	err = decoder.Decode(&resp)
+	require.Nil(t, err)
+	require.True(t, resp.OK)
+	assert.True(t, resp.JobID != "")
+	var job Job
+	assert.Nil(t, dbw.LoadJob(&job, resp.JobID))
+	var imgs []Image
+	assert.Nil(t, dbw.Select(&imgs, "select * from images where job_id=?", job.ID))
+	require.Equal(t, 1, len(imgs))
+	img := imgs[0]
+	assert.NotEqual(t, int64(167314), img.Size)
+	assert.Equal(t, 256, img.Width)
+	assert.Equal(t, 256, img.Height)
+	stat, err := os.Stat(img.Path)
+	assert.Nil(t, err)
+	assert.Equal(t, img.Size, stat.Size())
+}
+
 // Returns buffer with form, content type and error
 func createJobForm(filePath string, fieldName, fieldValue string) (*bytes.Buffer, string, error) {
 	var buf bytes.Buffer
