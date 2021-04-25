@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -134,8 +135,8 @@ func TestJobLoad(t *testing.T) {
 func TestImageNew(t *testing.T) {
 	user, _ := NewUser("foo", "bar")
 	job, _ := NewJob(user.ID, JOB_ORIG)
-	img, _ := NewImage(job, "foo.jpg", "image/jpeg")
-	assert.Equal(t, "foo.jpg", img.Path)
+	img, _ := NewImage(job, "/tmp", "foo.jpg", "image/jpeg")
+	assert.Equal(t, fmt.Sprintf("/tmp/%s_foo.jpg", img.ID), img.Path)
 }
 
 func TestImageSaveNew(t *testing.T) {
@@ -148,13 +149,13 @@ func TestImageSaveNew(t *testing.T) {
 	assert.Nil(t, dbw.CreateImageTable())
 	user, _ := NewUser("foo", "bar")
 	job, _ := NewJob(user.ID, JOB_ORIG)
-	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
+	img, _ := NewImage(job, "/tmp/", "foo.jpg", "image/jpeg")
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	assert.Nil(t, dbw.SaveNewImage(img))
 	var path string
 	dbw.QueryRow("select path from images where id=?", img.ID).Scan(&path)
-	assert.Equal(t, "/tmp/foo.jpg", path)
+	assert.Equal(t, img.Path, path)
 }
 
 func TestImageLoad(t *testing.T) {
@@ -167,7 +168,7 @@ func TestImageLoad(t *testing.T) {
 	assert.Nil(t, dbw.CreateImageTable())
 	user, _ := NewUser("foo", "bar")
 	job, _ := NewJob(user.ID, JOB_ORIG)
-	img, _ := NewImage(job, "/tmp/foo.jpg", "image/jpeg")
+	img, _ := NewImage(job, "/tmp/", "foo.jpg", "image/jpeg")
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	assert.Nil(t, dbw.SaveNewImage(img))

@@ -2,6 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"mime/multipart"
+	"path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -46,6 +49,9 @@ type Image struct {
 	JobID    string `db:"job_id"`
 	MimeType string `db:"mime_type"`
 	Path     string
+	Size     int64
+	Width    int64
+	Height   int64
 }
 
 func (dbw *DBWorker) CreateUserTable() error {
@@ -76,6 +82,9 @@ func (dbw *DBWorker) CreateImageTable() error {
 			job_id text not null,
 			path text unique not null,
 			mime_type text not null,
+			size int not null,
+			width int not null,
+			height int not null,
 			foreign key (user_id)
 				references users (id),
 			foreign key (job_id)
@@ -172,7 +181,7 @@ func NewJob(userID, kind string) (*Job, error) {
 }
 
 func (dbw *DBWorker) SaveNewJob(job *Job) error {
-	return dbw.WriteOne("insert into jobs (id, user_id, state) values(?,?,?)", job.ID, job.UserID, job.State)
+	return dbw.WriteOne("insert into jobs (id, user_id, state, kind) values(?,?,?,?)", job.ID, job.UserID, job.State, job.Kind)
 }
 
 func (dbw *DBWorker) SaveJob(job *Job) error {
@@ -185,7 +194,12 @@ func (dbw *DBWorker) LoadJob(jobID string) (*Job, error) {
 	return &j, err
 }
 
-func NewImage(job *Job, path, mimeType string) (*Image, error) {
+func NewImageFromFileHeader(job *Job, fileHeader *multipart.FileHeader, mediaRoot string) (*Image, error) {
+	img := &Image{}
+	return img, nil
+}
+
+func NewImage(job *Job, mediaRoot, fileName, mimeType string) (*Image, error) {
 	img := &Image{}
 	id, err := NewULIDNow()
 	if err != nil {
@@ -194,14 +208,14 @@ func NewImage(job *Job, path, mimeType string) (*Image, error) {
 	img.ID = id
 	img.JobID = job.ID
 	img.UserID = job.UserID
-	img.Path = path
+	img.Path = filepath.Join(mediaRoot, fmt.Sprintf("%s_%s", id, fileName))
 	return img, nil
 }
 
 func (dbw *DBWorker) SaveNewImage(img *Image) error {
 	_, err := dbw.NamedExec(`insert into images (
-		id, job_id, user_id, path, mime_type) values (
-		:id, :job_id, :user_id, :path, :mime_type)`, img)
+		id, job_id, user_id, path, mime_type, size, width, height) values (
+		:id, :job_id, :user_id, :path, :mime_type, :size, :width, :height)`, img)
 	return err
 }
 

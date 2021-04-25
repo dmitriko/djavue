@@ -76,18 +76,40 @@ func AuthMiddleware(dbw *DBWorker) gin.HandlerFunc {
 }
 
 func (app *App) postApiJob(c *gin.Context) {
-	user := c.MustGet("user").(*User)
-	kind := c.PostForm("kind")
-	//	switch  c.PostForm("kind") {
-	//	case "original":
-
-	//	}
-	job, _ := NewJob(user.ID, kind)
-	err := app.DBW.SaveNewJob(job)
+	user, ok := c.MustGet("user").(*User)
+	if !ok {
+		respondErr(c, 401, "Not authorized")
+		return
+	}
+	file, err := c.FormFile("file")
 	if err != nil {
+		respondErr(c, 400, "No file is received.")
+		return
+	}
+	//	fmt.Printf("headers are %#v", file.Header)
+	kind := c.PostForm("kind")
+	job, err := NewJob(user.ID, kind)
+	if err != nil {
+		respondErr(c, 400, err.Error())
+		return
+	}
+	if err := app.DBW.SaveNewJob(job); err != nil {
+		println(err.Error())
 		respondErr(c, 500, "Could not save job.")
 		return
 	}
+
+	switch kind {
+	case JOB_ORIG:
+		if err := performJobOrig(app.DBW, job, app.MEDIA_ROOT, file); err != nil {
+			respondErr(c, 400, err.Error())
+			return
+		}
+	default:
+		respondErr(c, 400, "Not valid job kind.")
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"ok":     true,
 		"job_id": job.ID,
