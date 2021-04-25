@@ -132,6 +132,8 @@ func TestApiJobPost(t *testing.T) {
 	require.Nil(t, err)
 	require.True(t, resp.OK)
 	assert.True(t, resp.JobID != "")
+	var job Job
+	assert.Nil(t, dbw.LoadJob(&job, resp.JobID))
 
 }
 
