@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -119,6 +121,9 @@ func (app *App) postApiJob(c *gin.Context) {
 }
 
 func setupRouter(dbw *DBWorker, mediaRoot string) *gin.Engine {
+	if _, err := os.Stat(mediaRoot); os.IsNotExist(err) {
+		log.Fatalf("%s is not accessible", mediaRoot)
+	}
 	r := gin.New()
 	app := &App{dbw, mediaRoot}
 	r.POST("/api/token/", app.postApiToken)

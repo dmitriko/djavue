@@ -109,12 +109,14 @@ func TestApiGetToken(t *testing.T) {
 	assert.True(t, len(resp.Token) > 10)
 }
 
-func TestApiJobPost(t *testing.T) {
+func TestApiJobPostOrig(t *testing.T) {
 	dbw, err := testDBWorker()
 	defer removeWorker(dbw)
 	assert.Nil(t, err)
 	assert.Nil(t, dbw.createTables())
 	user, _ := createTestUser("foo", "bar", dbw)
+	os.MkdirAll("/tmp/foo", os.ModePerm)
+	defer os.Remove("/tmp/foo")
 	router := setupRouter(dbw, "/tmp/foo")
 
 	buf, contentType, err := createJobForm("test_data/img.png", "kind", "original")
@@ -134,7 +136,16 @@ func TestApiJobPost(t *testing.T) {
 	assert.True(t, resp.JobID != "")
 	var job Job
 	assert.Nil(t, dbw.LoadJob(&job, resp.JobID))
-
+	var imgs []Image
+	assert.Nil(t, dbw.Select(&imgs, "select * from images where job_id=?", job.ID))
+	assert.Equal(t, 1, len(imgs))
+	img := imgs[0]
+	assert.Equal(t, int64(167314), img.Size)
+	assert.Equal(t, 1236, img.Width)
+	assert.Equal(t, 624, img.Height)
+	stat, err := os.Stat(img.Path)
+	assert.Nil(t, err)
+	assert.Equal(t, img.Size, stat.Size())
 }
 
 // Returns buffer with form, content type and error

@@ -54,6 +54,12 @@ func (dbw *DBWorker) QueryRow(query string, args ...interface{}) *sql.Row {
 	return dbw.DB.QueryRow(query, args...)
 }
 
+func (dbw *DBWorker) Select(dest interface{}, query string, args ...interface{}) error {
+	dbw.mu.Lock()
+	defer dbw.mu.Unlock()
+	return dbw.DB.Select(dest, query, args...)
+}
+
 func (dbw *DBWorker) WriteOne(query string, args ...interface{}) error {
 	dbw.mu.Lock()
 	defer dbw.mu.Unlock()

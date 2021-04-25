@@ -50,8 +50,8 @@ type Image struct {
 	MimeType string `db:"mime_type"`
 	Path     string
 	Size     int64
-	Width    int64
-	Height   int64
+	Width    int
+	Height   int
 }
 
 func (dbw *DBWorker) CreateUserTable() error {
