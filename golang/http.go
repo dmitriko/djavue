@@ -109,6 +109,11 @@ func (app *App) postApiJob(c *gin.Context) {
 			respondErr(c, 400, err.Error())
 			return
 		}
+	case JOB_SQUARE_ORIG:
+		if err := performJobSquareOrig(app.DBW, job, app.MEDIA_ROOT, file); err != nil {
+			respondErr(c, 400, err.Error())
+			return
+		}
 	default:
 		respondErr(c, 400, "Not valid job kind.")
 		return

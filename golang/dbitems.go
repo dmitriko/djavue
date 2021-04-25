@@ -204,6 +204,17 @@ func NewImage(job *Job, mediaRoot, fileName, mimeType string) (*Image, error) {
 	return img, nil
 }
 
+func NewImageFromForm(job *Job, mediaRoot string, fileHeader *multipart.FileHeader) (*Image, error) {
+	contentType, ok := fileHeader.Header["Content-Type"]
+	if !ok {
+		return nil, errors.New("Content-Type not provided.")
+	}
+	_, fileName := filepath.Split(fileHeader.Filename)
+	dbImg, _ := NewImage(job, mediaRoot, fileName, contentType[0])
+	dbImg.Size = fileHeader.Size
+	return dbImg, nil
+}
+
 func (dbw *DBWorker) SaveNewImage(img *Image) error {
 	_, err := dbw.NamedExec(`insert into images (
 		id, job_id, user_id, path, mime_type, size, width, height) values (
