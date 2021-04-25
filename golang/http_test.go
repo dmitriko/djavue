@@ -258,6 +258,32 @@ func TestApiJobPostAllThree(t *testing.T) {
 	require.Equal(t, 3, len(imgs))
 }
 
+func TestApiJobGet(t *testing.T) {
+	dbw, err := testDBWorker()
+	defer removeWorker(dbw)
+	require.Nil(t, err)
+	require.Nil(t, dbw.createTables())
+	user, _ := createTestUser("foo", "bar", dbw)
+	job, _ := NewJob(user.ID, JOB_ORIG)
+	require.Nil(t, dbw.SaveNewJob(job))
+	img, _ := NewImage(job, "/tmp", "foo.png", "image/png")
+	require.Nil(t, dbw.SaveNewImage(img))
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/job/%s/", job.ID), nil)
+	req.Header.Add("Authorization", "Token "+user.Token)
+
+	w := httptest.NewRecorder()
+	router := setupRouter(dbw, "/tmp/foo")
+	router.ServeHTTP(w, req)
+	require.Equal(t, 200, w.Code)
+	decoder := json.NewDecoder(w.Body)
+	var resp JobResp
+	err = decoder.Decode(&resp)
+	require.Nil(t, err)
+	require.True(t, resp.OK)
+	assert.Equal(t, job.ID, resp.PK)
+	assert.Equal(t, 1, len(resp.Images))
+}
+
 // Returns buffer with form, content type and error
 func createJobForm(filePath string, fieldName, fieldValue string) (*bytes.Buffer, string, error) {
 	var buf bytes.Buffer

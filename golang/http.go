@@ -79,6 +79,54 @@ func AuthMiddleware(dbw *DBWorker) gin.HandlerFunc {
 	}
 }
 
+type ImgResp struct {
+	PK string `json:"pk"`
+}
+
+type JobResp struct {
+	OK     bool      `json:"ok"`
+	PK     string    `json:"pk"`
+	Images []ImgResp `json:"images"`
+}
+
+func (app *App) getApiJob(c *gin.Context) {
+	user, ok := c.MustGet("user").(*User)
+	if !ok {
+		respondErr(c, 401, "Not authorized")
+		return
+	}
+	id := c.Param("id")
+	var job Job
+	if err := app.DBW.LoadJob(&job, id); err != nil {
+		if IsNotFound(err) {
+			respondErr(c, 404, "Could not find")
+			return
+		} else {
+			respondErr(c, 500, "Could not fetch job")
+			return
+		}
+	}
+	if user.ID != job.UserID {
+		respondErr(c, 403, "Not allowed")
+		return
+	}
+	resp := JobResp{
+		OK: true,
+		PK: job.ID,
+	}
+	var imgs []Image
+	err := app.DBW.Select(&imgs, "select * from images where job_id=?", job.ID)
+	if err != nil {
+		respondErr(c, 500, "Could not fetch images")
+		return
+	}
+	for _, img := range imgs {
+		resp.Images = append(resp.Images, ImgResp{PK: img.ID})
+	}
+
+	c.JSON(200, &resp)
+}
+
 func (app *App) postApiJob(c *gin.Context) {
 	user, ok := c.MustGet("user").(*User)
 	if !ok {
@@ -143,5 +191,6 @@ func setupRouter(dbw *DBWorker, mediaRoot string) *gin.Engine {
 	app := &App{dbw, mediaRoot}
 	r.POST("/api/token/", app.postApiToken)
 	r.POST("/api/job/", AuthMiddleware(dbw), app.postApiJob)
+	r.GET("/api/job/:id/", AuthMiddleware(dbw), app.getApiJob)
 	return r
 }
