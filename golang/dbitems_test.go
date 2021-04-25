@@ -49,10 +49,12 @@ func TestUserLoad(t *testing.T) {
 	user2, err := NewUser("spam", "egg")
 	assert.Nil(t, err)
 	assert.Nil(t, dbw.SaveNewUser(user2))
-	u2, err := dbw.LoadUser(user2.ID)
+	var u2 User
+	err = dbw.LoadUser(&u2, user2.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, "spam", u2.Username)
-	u1, err := dbw.LoadUserByName(user1.Username)
+	var u1 User
+	err = dbw.LoadUserByName(&u1, user1.Username)
 	assert.Nil(t, err)
 	assert.Equal(t, u1.ID, user1.ID)
 }
@@ -69,7 +71,8 @@ func TestUserUpdate(t *testing.T) {
 	token, _ := NewToken()
 	user.Token = token
 	assert.Nil(t, dbw.SaveUser(user))
-	u, err := dbw.LoadUser(user.ID)
+	var u User
+	err = dbw.LoadUser(&u, user.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, token, u.Token)
 
@@ -127,7 +130,8 @@ func TestJobLoad(t *testing.T) {
 	job, _ := NewJob(user.ID, JOB_SQUARE_ORIG)
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
-	j, err := dbw.LoadJob(job.ID)
+	var j Job
+	err = dbw.LoadJob(&j, job.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, user.ID, j.UserID)
 }
@@ -172,7 +176,8 @@ func TestImageLoad(t *testing.T) {
 	dbw.SaveNewUser(user)
 	dbw.SaveNewJob(job)
 	assert.Nil(t, dbw.SaveNewImage(img))
-	imgLoaded, err := dbw.LoadImage(img.ID)
+	var imgLoaded Image
+	err = dbw.LoadImage(&imgLoaded, img.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, img.ID, imgLoaded.ID)
 }

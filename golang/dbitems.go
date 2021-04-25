@@ -118,22 +118,16 @@ func (dbw *DBWorker) SaveUser(user *User) error {
 	return err
 }
 
-func (dbw *DBWorker) LoadUser(id string) (*User, error) {
-	user := &User{}
-	err := dbw.Get(user, "select * from users where id=?", id)
-	return user, err
+func (dbw *DBWorker) LoadUser(user *User, id string) error {
+	return dbw.Get(user, "select * from users where id=?", id)
 }
 
-func (dbw *DBWorker) LoadUserByName(username string) (*User, error) {
-	user := &User{}
-	err := dbw.Get(user, "select * from users where username=?", username)
-	return user, err
+func (dbw *DBWorker) LoadUserByName(user *User, username string) error {
+	return dbw.Get(user, "select * from users where username=?", username)
 }
 
-func (dbw *DBWorker) LoadUserByToken(token string) (*User, error) {
-	user := &User{}
-	err := dbw.Get(user, "select * from users where token=?", token)
-	return user, err
+func (dbw *DBWorker) LoadUserByToken(user *User, token string) error {
+	return dbw.Get(user, "select * from users where token=?", token)
 }
 
 func NewUser(username, password string) (*User, error) {
@@ -188,10 +182,8 @@ func (dbw *DBWorker) SaveJob(job *Job) error {
 	return dbw.WriteOne("update jobs set state = ? where id = ?", job.State, job.ID)
 }
 
-func (dbw *DBWorker) LoadJob(jobID string) (*Job, error) {
-	var j Job
-	err := dbw.Get(&j, "select * from jobs where id=?", jobID)
-	return &j, err
+func (dbw *DBWorker) LoadJob(j *Job, jobID string) error {
+	return dbw.Get(j, "select * from jobs where id=?", jobID)
 }
 
 func NewImageFromFileHeader(job *Job, fileHeader *multipart.FileHeader, mediaRoot string) (*Image, error) {
@@ -219,8 +211,6 @@ func (dbw *DBWorker) SaveNewImage(img *Image) error {
 	return err
 }
 
-func (dbw *DBWorker) LoadImage(id string) (*Image, error) {
-	var img Image
-	err := dbw.Get(&img, "select * from images where id = ?", id)
-	return &img, err
+func (dbw *DBWorker) LoadImage(img *Image, id string) error {
+	return dbw.Get(img, "select * from images where id = ?", id)
 }

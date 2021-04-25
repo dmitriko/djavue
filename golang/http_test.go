@@ -129,8 +129,8 @@ func TestApiJobPost(t *testing.T) {
 	decoder := json.NewDecoder(w.Body)
 	var resp Resp
 	err = decoder.Decode(&resp)
-	assert.Nil(t, err)
-	assert.True(t, resp.OK)
+	require.Nil(t, err)
+	require.True(t, resp.OK)
 	assert.True(t, resp.JobID != "")
 
 }

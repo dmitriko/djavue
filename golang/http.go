@@ -21,7 +21,8 @@ func (app *App) postApiToken(c *gin.Context) {
 		})
 		return
 	}
-	user, err := app.DBW.LoadUserByName(username)
+	var user User
+	err := app.DBW.LoadUserByName(&user, username)
 	if err != nil {
 		var msg string
 		if IsNotFound(err) {
@@ -65,12 +66,13 @@ func AuthMiddleware(dbw *DBWorker) gin.HandlerFunc {
 			respondErr(c, 401, "Authorization token no valid.")
 			return
 		}
-		user, err := dbw.LoadUserByToken(token)
+		var user User
+		err := dbw.LoadUserByToken(&user, token)
 		if err != nil {
 			respondErr(c, 401, "Authorization token no user.")
 			return
 		}
-		c.Set("user", user)
+		c.Set("user", &user)
 		c.Next()
 	}
 }
