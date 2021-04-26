@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -13,10 +14,15 @@ type App struct {
 	MEDIA_ROOT string
 }
 
+type LoginCall struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func (app *App) postApiToken(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-	if username == "" || password == "" {
+	var l LoginCall
+	c.BindJSON(&l)
+	if l.Username == "" || l.Password == "" {
 		c.JSON(400, gin.H{
 			"ok":    false,
 			"error": "Missing username or password.",
@@ -24,13 +30,13 @@ func (app *App) postApiToken(c *gin.Context) {
 		return
 	}
 	var user User
-	err := app.DBW.LoadUserByName(&user, username)
+	err := app.DBW.LoadUserByName(&user, l.Username)
 	if err != nil {
 		var msg string
 		if IsNotFound(err) {
 			msg = "Wrong username or password."
 		} else {
-			msg = "Could not fetch data."
+			msg = fmt.Sprintf("Could not fetch data: %s", err.Error())
 		}
 		c.JSON(400, gin.H{
 			"ok":    false,
@@ -38,7 +44,7 @@ func (app *App) postApiToken(c *gin.Context) {
 		})
 		return
 	}
-	if !user.IsPasswdValid(password) {
+	if !user.IsPasswdValid(l.Password) {
 		c.JSON(400, gin.H{
 			"ok":    false,
 			"error": "Wrong username or password.",

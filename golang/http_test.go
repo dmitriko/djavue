@@ -9,10 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
-	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +29,19 @@ type Resp struct {
 	JobID string `json:"job_id,omitempty"`
 }
 
+func NewJsonRequest(path string, data map[string]string) (*http.Request, error) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", path, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	return req, nil
+}
+
 func TestApiGetToken(t *testing.T) {
 	dbw, err := testDBWorker()
 	defer removeWorker(dbw)
@@ -40,10 +51,8 @@ func TestApiGetToken(t *testing.T) {
 	createTestUser("foo", "bar", dbw)
 	w := httptest.NewRecorder()
 	// Empty request
-	resp := Resp{}
-	data := url.Values{}
-	req, _ := http.NewRequest("POST", "/api/token/", strings.NewReader(data.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	var resp Resp
+	req, _ := NewJsonRequest("/api/token/", map[string]string{})
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
 	decoder := json.NewDecoder(w.Body)
@@ -53,9 +62,8 @@ func TestApiGetToken(t *testing.T) {
 	assert.Equal(t, "Missing username or password.", resp.Error)
 	// Only username
 	resp = Resp{}
-	data.Set("username", "foo")
-	req, _ = http.NewRequest("POST", "/api/token/", strings.NewReader(data.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req, _ = NewJsonRequest("/api/token/", map[string]string{"username": "foo"})
+	req.Header.Add("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
@@ -66,11 +74,7 @@ func TestApiGetToken(t *testing.T) {
 	assert.Equal(t, "Missing username or password.", resp.Error)
 	// wrong password
 	resp = Resp{}
-	data = url.Values{}
-	data.Set("username", "foo")
-	data.Set("password", "dummy")
-	req, _ = http.NewRequest("POST", "/api/token/", strings.NewReader(data.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req, _ = NewJsonRequest("/api/token/", map[string]string{"username": "foo", "password": "dummy"})
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
 	decoder = json.NewDecoder(w.Body)
@@ -80,11 +84,8 @@ func TestApiGetToken(t *testing.T) {
 	assert.Equal(t, "Wrong username or password.", resp.Error)
 	// wrong username
 	resp = Resp{}
-	data = url.Values{}
-	data.Set("username", "spam")
-	data.Set("password", "egg")
-	req, _ = http.NewRequest("POST", "/api/token/", strings.NewReader(data.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req, _ = NewJsonRequest("/api/token/", map[string]string{"username": "spam", "password": "egg"})
+	req.Header.Add("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
@@ -95,11 +96,7 @@ func TestApiGetToken(t *testing.T) {
 	assert.Equal(t, "Wrong username or password.", resp.Error)
 	// correct credentials
 	resp = Resp{}
-	data = url.Values{}
-	data.Set("username", "foo")
-	data.Set("password", "bar")
-	req, _ = http.NewRequest("POST", "/api/token/", strings.NewReader(data.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req, _ = NewJsonRequest("/api/token/", map[string]string{"username": "foo", "password": "bar"})
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
