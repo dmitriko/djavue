@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,6 +21,11 @@ import (
 func createTestUser(name, password string, dbw *DBWorker) (*User, error) {
 	user, _ := NewUser(name, password)
 	return user, dbw.SaveNewUser(user)
+}
+
+func setupTestRouter(dbw *DBWorker, mediaRoot string) *gin.Engine {
+	r := gin.New()
+	return SetupRouter(r, dbw, mediaRoot)
 }
 
 type Resp struct {
@@ -47,7 +53,7 @@ func TestApiGetToken(t *testing.T) {
 	defer removeWorker(dbw)
 	assert.Nil(t, err)
 	assert.Nil(t, dbw.createTables())
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 	createTestUser("foo", "bar", dbw)
 	w := httptest.NewRecorder()
 	// Empty request
@@ -115,7 +121,7 @@ func TestApiJobPostOrig(t *testing.T) {
 	user, _ := createTestUser("foo", "bar", dbw)
 	os.MkdirAll("/tmp/foo", os.ModePerm)
 	defer os.Remove("/tmp/foo")
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 
 	buf, contentType, err := createJobForm("test_data/img.png", "kind", "original")
 	require.Nil(t, err)
@@ -154,7 +160,7 @@ func TestApiJobPostSquareOrig(t *testing.T) {
 	user, _ := createTestUser("foo", "bar", dbw)
 	os.MkdirAll("/tmp/foo", os.ModePerm)
 	defer os.Remove("/tmp/foo")
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 
 	buf, contentType, err := createJobForm("test_data/img.png", "kind", "square_original")
 	require.Nil(t, err)
@@ -193,7 +199,7 @@ func TestApiJobPostSquareSmall(t *testing.T) {
 	user, _ := createTestUser("foo", "bar", dbw)
 	os.MkdirAll("/tmp/foo", os.ModePerm)
 	defer os.Remove("/tmp/foo")
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 
 	buf, contentType, err := createJobForm("test_data/img.png", "kind", "square_small")
 	require.Nil(t, err)
@@ -232,7 +238,7 @@ func TestApiJobPostAllThree(t *testing.T) {
 	user, _ := createTestUser("foo", "bar", dbw)
 	os.MkdirAll("/tmp/foo", os.ModePerm)
 	defer os.Remove("/tmp/foo")
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 
 	buf, contentType, err := createJobForm("test_data/img.png", "kind", "all_three")
 	require.Nil(t, err)
@@ -270,7 +276,7 @@ func TestApiJobGet(t *testing.T) {
 	req.Header.Add("Authorization", "Token "+user.Token)
 
 	w := httptest.NewRecorder()
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 	router.ServeHTTP(w, req)
 	require.Equal(t, 200, w.Code)
 	decoder := json.NewDecoder(w.Body)
@@ -300,7 +306,7 @@ func TestApiImageGet(t *testing.T) {
 	req.Header.Add("Authorization", "Token "+user.Token)
 
 	w := httptest.NewRecorder()
-	router := setupRouter(dbw, "/tmp/foo")
+	router := setupTestRouter(dbw, "/tmp/foo")
 	router.ServeHTTP(w, req)
 	require.Equal(t, 200, w.Code)
 	contentType, ok := w.HeaderMap["Content-Type"]

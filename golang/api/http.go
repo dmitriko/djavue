@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -77,7 +77,7 @@ func AuthMiddleware(dbw *DBWorker) gin.HandlerFunc {
 		var user User
 		err := dbw.LoadUserByToken(&user, token)
 		if err != nil {
-			respondErr(c, 401, "Authorization token no user.")
+			respondErr(c, 401, "Authorization token is not valid.")
 			return
 		}
 		c.Set("user", &user)
@@ -214,11 +214,10 @@ func (app *App) postApiJob(c *gin.Context) {
 	})
 }
 
-func setupRouter(dbw *DBWorker, mediaRoot string) *gin.Engine {
+func SetupRouter(r *gin.Engine, dbw *DBWorker, mediaRoot string) *gin.Engine {
 	if _, err := os.Stat(mediaRoot); os.IsNotExist(err) {
 		log.Fatalf("%s is not accessible", mediaRoot)
 	}
-	r := gin.Default()
 	app := &App{dbw, mediaRoot}
 	r.POST("/api/token/", app.postApiToken)
 	r.POST("/api/job/", AuthMiddleware(dbw), app.postApiJob)

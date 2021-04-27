@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
+	"golavue.dmitriko.com/api"
 )
 
 func main() {
@@ -20,12 +22,13 @@ func main() {
 	if dbPath == "" {
 		log.Fatal("DJAVUE_DB_PATH is not set")
 	}
-	dbw, err := NewDBWorker(dbPath)
+	dbw, err := api.NewDBWorker(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	router := setupRouter(dbw, mediaRoot)
+	r := gin.Default()
+	router := api.SetupRouter(r, dbw, mediaRoot)
 	router.Use(static.Serve("/", static.LocalFile(staticRoot, false)))
 	router.Run(":8080")
 }
