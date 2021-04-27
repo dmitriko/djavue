@@ -56,10 +56,10 @@ type Image struct {
 
 func (dbw *DBWorker) CreateUserTable() error {
 	schema := `create table users (
-			id text primary key, 
-			username text unique not null, 
-			password text not null, 
-			token text unique not null)`
+				id text primary key, 
+				username text unique not null, 
+				password text not null, 
+				token text unique not null)`
 	return dbw.WriteOne(schema)
 }
 
@@ -93,7 +93,7 @@ func (dbw *DBWorker) CreateImageTable() error {
 	return dbw.WriteOne(schema)
 }
 
-func (dbw *DBWorker) createTables() error {
+func (dbw *DBWorker) CreateTables() error {
 	if err := dbw.CreateUserTable(); err != nil {
 		return err
 	}
